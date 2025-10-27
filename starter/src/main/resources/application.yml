@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: library-management-system
+
+# Configuration du serveur
+server:
+  port: 8080
+  servlet:
+    context-path: /
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on_param
+
+# Configuration des logs
+logging:
+  level:
+    root: INFO
+    ci.org: DEBUG
+    ci.org.infrastructure.config.UseCaseTransactionalAspect: DEBUG
+    ci.org.infrastructure.config.LoggingInterceptor: INFO
+    ci.org.presentation.rest.exceptions.GlobalExceptionHandler: WARN
+    org.springframework.web: WARN
+    org.springframework.boot: INFO
