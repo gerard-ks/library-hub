@@ -16,6 +16,7 @@ target/
 .apt_generated
 .classpath
 .factorypath
+temp_auto_push.bat
 .project
 .settings
 .springBeans
@@ -32,7 +33,7 @@ build/
 !**/src/test/**/build/
 
 ### VS Code ###
-.vscode/
 
 ### Mac OS ###
-.DS_Store
+.DS_Store.gitignore
+branch_structure.json
