@@ -10,6 +10,7 @@ import ci.org.shared.kernel.TransactionMode;
 import ci.org.shared.kernel.UseCase;
 
 import java.util.Objects;
+import java.util.Optional;
 
 
 @UseCase(value = "CreateBook", transactionMode = TransactionMode.READ_WRITE)
@@ -23,15 +24,11 @@ public class CreateBookUseCase implements CommandUseCase<CreateBookCommand, Book
 
     @Override
     public BookResponse execute(CreateBookCommand command) {
-        Objects.requireNonNull(command, "CreateBookCommand cannot be null");
-
-        // 1. Créer l'entité domain (validation métier automatique)
-        Book book = Book.create(command.isbn(), command.title(), command.author());
-
-        // 2. Persister
-        Book savedBook = bookRepository.save(book);
-
-        // 3. Mapper vers DTO et retourner
-        return BookMapper.toResponse(savedBook);
+        return Optional.ofNullable(
+                bookRepository.save(
+                        Book.create(command.isbn(), command.title(), command.author())
+                )
+        ).map(BookMapper::toResponse
+        ).orElseThrow(() -> new RuntimeException(""));
     }
 }

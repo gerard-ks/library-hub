@@ -12,10 +12,11 @@ import ci.org.shared.kernel.TransactionMode;
 import ci.org.shared.kernel.UseCase;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Use Case : Marquer un livre comme disponible.
- *
+ * <p>
  * Implémente CommandUseCase car modifie l'état (write).
  */
 @UseCase(value = "MarkBookAsAvailable", transactionMode = TransactionMode.READ_WRITE)
@@ -29,19 +30,13 @@ public class MarkBookAsAvailableUseCase implements CommandUseCase<MarkBookAsAvai
 
     @Override
     public BookResponse execute(MarkBookAsAvailableCommand command) {
-        Objects.requireNonNull(command, "MarkBookAsAvailableCommand cannot be null");
-
-        // 1. Rechercher le livre
         Book book = bookRepository.findById(BookId.of(command.bookId()))
                 .orElseThrow(() -> new BookNotFoundException(command.bookId()));
 
-        // 2. Appliquer la règle métier
         book.markAsAvailable();
 
-        // 3. Persister
-        Book updatedBook = bookRepository.save(book);
-
-        // 4. Mapper vers DTO et retourner
-        return BookMapper.toResponse(updatedBook);
+        return Optional.ofNullable(bookRepository.save(book))
+                .map(BookMapper::toResponse)
+                .orElseThrow(() -> new RuntimeException(""));
     }
 }
