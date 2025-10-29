@@ -1,6 +1,6 @@
 package ci.org.application.member.mappers;
 
-import ci.org.application.member.dtos.MemberResponse;
+import ci.org.application.member.responses.MemberResponse;
 import ci.org.domain.member.entities.Member;
 
 /**

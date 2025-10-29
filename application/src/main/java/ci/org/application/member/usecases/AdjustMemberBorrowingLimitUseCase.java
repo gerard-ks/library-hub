@@ -1,7 +1,8 @@
 package ci.org.application.member.usecases;
 
-import ci.org.application.member.commands.AdjustBorrowingLimitCommand;
-import ci.org.application.member.dtos.MemberResponse;
+import ci.org.application.member.requests.commands.AdjustBorrowingLimitCommand;
+import ci.org.application.member.requests.commands.UpdateMemberCommand;
+import ci.org.application.member.responses.MemberResponse;
 import ci.org.application.member.mappers.MemberMapper;
 import ci.org.domain.member.entities.Member;
 import ci.org.domain.member.exceptions.MemberNotFoundException;
@@ -24,19 +25,14 @@ public class AdjustMemberBorrowingLimitUseCase implements CommandUseCase<AdjustB
 
     @Override
     public MemberResponse execute(AdjustBorrowingLimitCommand command) {
-        Objects.requireNonNull(command, "AdjustMemberLimitCommand cannot be null");
-
-        // 1. Rechercher le membre
-        Member member = memberRepository.findById(MemberId.of(command.memberId()))
+        return memberRepository.findById(MemberId.of(command.memberId()))
+                .map(member -> adjustLimitAndSave(member, command.newLimit()))
+                .map(MemberMapper::toResponse)
                 .orElseThrow(() -> new MemberNotFoundException(command.memberId()));
+    }
 
-        // 2. Appliquer la règle métier (validation 1-20 automatique)
-        member.adjustBorrowingLimit(command.newLimit());
-
-        // 3. Persister
-        Member updatedMember = memberRepository.save(member);
-
-        // 4. Mapper vers DTO et retourner
-        return MemberMapper.toResponse(updatedMember);
+    private Member adjustLimitAndSave(Member member, int newLimit) {
+        member.adjustBorrowingLimit(newLimit);
+        return memberRepository.save(member);
     }
 }

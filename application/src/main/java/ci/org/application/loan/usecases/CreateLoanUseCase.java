@@ -1,7 +1,7 @@
 package ci.org.application.loan.usecases;
 
-import ci.org.application.loan.commands.CreateLoanCommand;
-import ci.org.application.loan.dtos.LoanResponse;
+import ci.org.application.loan.requests.commands.CreateLoanCommand;
+import ci.org.application.loan.responses.LoanResponse;
 import ci.org.application.loan.mappers.LoanMapper;
 import ci.org.domain.book.entities.Book;
 import ci.org.domain.book.exceptions.BookNotFoundException;
@@ -18,9 +18,6 @@ import ci.org.domain.member.valueobjects.MemberId;
 import ci.org.shared.kernel.CommandUseCase;
 import ci.org.shared.kernel.TransactionMode;
 import ci.org.shared.kernel.UseCase;
-
-import java.util.List;
-import java.util.Objects;
 
 @UseCase(value = "CreateLoan", transactionMode = TransactionMode.READ_WRITE)
 public class CreateLoanUseCase implements CommandUseCase<CreateLoanCommand, LoanResponse> {
@@ -40,46 +37,42 @@ public class CreateLoanUseCase implements CommandUseCase<CreateLoanCommand, Loan
 
     @Override
     public LoanResponse execute(CreateLoanCommand command) {
-        Objects.requireNonNull(command, "CreateLoanCommand cannot be null");
 
-        // 1. Récupérer le membre
         Member member = memberRepository.findById(new MemberId(command.memberId()))
                 .orElseThrow(() -> new MemberNotFoundException(command.memberId()));
 
-        // 2. Récupérer le livre
         Book book = bookRepository.findById(new BookId(command.bookId()))
                 .orElseThrow(() -> new BookNotFoundException(command.bookId()));
 
-        // 3. Compter les emprunts actifs du membre
         long currentActiveLoans = loanRepository.countActiveByMemberId(command.memberId());
 
-
-        // 4. Vérifier l'éligibilité
-        boolean canBorrow = eligibilityService.canMemberBorrowBook(
+        boolean canBorrow = isEligible(
                 member,
                 book,
                 (int) currentActiveLoans
         );
 
         if (!canBorrow) {
-            // Construire un message d'erreur détaillé
             String reason = buildLoanDenialReason(member, book, (int) currentActiveLoans);
             throw new LoanNotAllowedException(reason);
         }
 
-        // 5. Créer l'entité domain (validation métier automatique)
-        Loan loan = Loan.create(
+        Loan savedLoan = loanRepository.save(Loan.create(
                 command.memberId(),
                 command.bookId(),
                 command.borrowDate(),
                 command.dueDate()
-        );
+        ));
 
-        // 2. Persister
-        Loan savedLoan = loanRepository.save(loan);
-
-        // 3. Mapper vers DTO et retourner
         return LoanMapper.toResponse(savedLoan);
+    }
+
+    private boolean isEligible(Member member, Book book, int currentActiveLoans) {
+        return eligibilityService.canMemberBorrowBook(
+               member,
+                book,
+                currentActiveLoans
+        );
     }
 
     private String buildLoanDenialReason(Member member, Book book, int currentActiveLoans) {

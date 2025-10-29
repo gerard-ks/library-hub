@@ -1,7 +1,7 @@
 package ci.org.application.loan.usecases;
 
-import ci.org.application.loan.commands.CreateLoanCommand;
-import ci.org.application.loan.dtos.LoanResponse;
+import ci.org.application.loan.requests.commands.CreateLoanCommand;
+import ci.org.application.loan.responses.LoanResponse;
 import ci.org.domain.book.entities.Book;
 import ci.org.domain.book.exceptions.BookNotFoundException;
 import ci.org.domain.book.repositories.BookRepository;

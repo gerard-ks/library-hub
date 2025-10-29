@@ -1,7 +1,7 @@
 package ci.org.application.member.usecases;
 
-import ci.org.application.member.commands.AllowBorrowingCommand;
-import ci.org.application.member.dtos.MemberResponse;
+import ci.org.application.member.requests.commands.AllowBorrowingCommand;
+import ci.org.application.member.responses.MemberResponse;
 import ci.org.domain.member.entities.Member;
 import ci.org.domain.member.exceptions.MemberNotFoundException;
 import ci.org.domain.member.repositories.MemberRepository;

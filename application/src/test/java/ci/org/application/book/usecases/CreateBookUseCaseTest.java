@@ -1,7 +1,7 @@
 package ci.org.application.book.usecases;
 
-import ci.org.application.book.commands.CreateBookCommand;
-import ci.org.application.book.dtos.BookResponse;
+import ci.org.application.book.requests.commands.CreateBookCommand;
+import ci.org.application.book.responses.BookResponse;
 import ci.org.domain.book.entities.Book;
 import ci.org.domain.book.exceptions.InvalidIsbnException;
 import ci.org.domain.book.repositories.BookRepository;

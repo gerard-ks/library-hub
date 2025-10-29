@@ -1,7 +1,7 @@
 package ci.org.application.member.usecases;
 
-import ci.org.application.member.dtos.MemberResponse;
-import ci.org.application.member.queries.GetAllMembersQuery;
+import ci.org.application.member.responses.MemberResponse;
+import ci.org.application.member.requests.queries.ListMembersQuery;
 import ci.org.domain.member.entities.Member;
 import ci.org.domain.member.repositories.MemberRepository;
 import ci.org.shared.kernel.Page;
@@ -41,7 +41,7 @@ class GetAllMembersUseCaseTest {
     @DisplayName("Should get all members successfully")
     void shouldGetAllMembersSuccessfully() {
         // Given
-        GetAllMembersQuery query = new GetAllMembersQuery(0, 20, "name", "ASC");
+        ListMembersQuery query = new ListMembersQuery(0, 20, "name", "ASC");
 
         Member member1 = Member.create("Alice");
         Member member2 = Member.create("Bob");
@@ -75,7 +75,7 @@ class GetAllMembersUseCaseTest {
     @DisplayName("Should return empty page when no members")
     void shouldReturnEmptyPageWhenNoMembers() {
         // Given
-        GetAllMembersQuery query = new GetAllMembersQuery(0, 20, "name", "ASC");
+        ListMembersQuery query = new ListMembersQuery(0, 20, "name", "ASC");
 
         PageRequest pageRequest = PageRequest.of(0, 20);
         Page<Member> emptyPage = Page.of(Collections.emptyList(), pageRequest, 0);
@@ -98,7 +98,7 @@ class GetAllMembersUseCaseTest {
     @DisplayName("Should handle pagination correctly")
     void shouldHandlePaginationCorrectly() {
         // Given - Page 1 (10 éléments par page, total 25 éléments)
-        GetAllMembersQuery query = new GetAllMembersQuery(1, 10, "name", "ASC");
+        ListMembersQuery query = new ListMembersQuery(1, 10, "name", "ASC");
 
         List<Member> members = Arrays.asList(
                 Member.create("Member 11"),
@@ -131,7 +131,7 @@ class GetAllMembersUseCaseTest {
     @DisplayName("Should map all member properties correctly")
     void shouldMapAllMemberPropertiesCorrectly() {
         // Given
-        GetAllMembersQuery query = new GetAllMembersQuery(0, 10, "name", "ASC");
+        ListMembersQuery query = new ListMembersQuery(0, 10, "name", "ASC");
 
         Member member = Member.create("John Doe");
         member.forbidBorrowing();
@@ -159,7 +159,7 @@ class GetAllMembersUseCaseTest {
     @DisplayName("Should handle DESC sort direction")
     void shouldHandleDescSortDirection() {
         // Given
-        GetAllMembersQuery query = new GetAllMembersQuery(0, 20, "name", "DESC");
+        ListMembersQuery query = new ListMembersQuery(0, 20, "name", "DESC");
 
         Member member1 = Member.create("Charlie");
         Member member2 = Member.create("Bob");

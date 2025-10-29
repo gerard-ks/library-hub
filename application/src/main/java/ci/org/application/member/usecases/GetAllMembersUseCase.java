@@ -1,8 +1,8 @@
 package ci.org.application.member.usecases;
 
-import ci.org.application.member.dtos.MemberResponse;
+import ci.org.application.member.responses.MemberResponse;
 import ci.org.application.member.mappers.MemberMapper;
-import ci.org.application.member.queries.GetAllMembersQuery;
+import ci.org.application.member.requests.queries.ListMembersQuery;
 import ci.org.domain.member.entities.Member;
 import ci.org.domain.member.repositories.MemberRepository;
 import ci.org.shared.kernel.*;
@@ -10,7 +10,7 @@ import ci.org.shared.kernel.*;
 import java.util.Objects;
 
 @UseCase(value = "GetAllMembers", transactionMode = TransactionMode.READ_ONLY)
-public class GetAllMembersUseCase implements QueryUseCase<GetAllMembersQuery, Page<MemberResponse>> {
+public class GetAllMembersUseCase implements QueryUseCase<ListMembersQuery, Page<MemberResponse>> {
 
     private final MemberRepository memberRepository;
 
@@ -19,20 +19,16 @@ public class GetAllMembersUseCase implements QueryUseCase<GetAllMembersQuery, Pa
     }
 
     @Override
-    public Page<MemberResponse> execute(GetAllMembersQuery query) {
-        Objects.requireNonNull(query, "GetAllMembersQuery cannot be null");
+    public Page<MemberResponse> execute(ListMembersQuery query) {
+        return memberRepository.findAll(toPageRequest(query))
+                .map(MemberMapper::toResponse);
+    }
 
-        // 1. Créer PageRequest (domain)
-        PageRequest pageRequest = PageRequest.of(
+    private PageRequest toPageRequest(ListMembersQuery query) {
+        return PageRequest.of(
                 query.page(),
                 query.size(),
                 Sort.by(query.sortBy(), Sort.Direction.valueOf(query.sortDirection()))
         );
-
-        // 2. Récupérer Page<Member> (domain)
-        Page<Member> memberPage = memberRepository.findAll(pageRequest);
-
-        // 3. Mapper vers Page<MemberResponse>
-        return memberPage.map(MemberMapper::toResponse);
     }
 }

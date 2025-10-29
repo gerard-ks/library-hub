@@ -1,6 +1,6 @@
 package ci.org.application.loan.mappers;
 
-import ci.org.application.loan.dtos.LoanResponse;
+import ci.org.application.loan.responses.LoanResponse;
 import ci.org.domain.loan.enitites.Loan;
 
 /**

@@ -1,7 +1,7 @@
 package ci.org.application.book.usecases;
 
-import ci.org.application.book.dtos.BookResponse;
-import ci.org.application.book.queries.GetAllBooksQuery;
+import ci.org.application.book.responses.BookResponse;
+import ci.org.application.book.requests.queries.ListBooksQuery;
 import ci.org.domain.book.entities.Book;
 import ci.org.domain.book.repositories.BookRepository;
 import ci.org.shared.kernel.Page;
@@ -42,7 +42,7 @@ class GetAllBooksUseCaseTest {
     @DisplayName("Should get all books with pagination successfully")
     void shouldGetAllBooksWithPaginationSuccessfully() {
         // Given
-        GetAllBooksQuery query = new GetAllBooksQuery(0, 20, "title", "ASC");
+        ListBooksQuery query = new ListBooksQuery(0, 20, "title", "ASC");
 
         Book book1 = Book.create("978-0-59-652068-7", "Clean Code", "Robert Martin");
         Book book2 = Book.create("978-0-13-235088-4", "Clean Architecture", "Robert Martin");
@@ -76,7 +76,7 @@ class GetAllBooksUseCaseTest {
     @DisplayName("Should return empty page when no books")
     void shouldReturnEmptyPageWhenNoBooks() {
         // Given
-        GetAllBooksQuery query = new GetAllBooksQuery(0, 20, "title", "ASC");
+        ListBooksQuery query = new ListBooksQuery(0, 20, "title", "ASC");
 
         PageRequest pageRequest = PageRequest.of(0, 20);
         Page<Book> emptyPage = Page.of(Collections.emptyList(), pageRequest, 0);
@@ -99,7 +99,7 @@ class GetAllBooksUseCaseTest {
     @DisplayName("Should handle pagination correctly")
     void shouldHandlePaginationCorrectly() {
         // Given - Page 1 (10 éléments par page, total 25 éléments)
-        GetAllBooksQuery query = new GetAllBooksQuery(1, 10, "title", "ASC");
+        ListBooksQuery query = new ListBooksQuery(1, 10, "title", "ASC");
 
         List<Book> books = Arrays.asList(
                 Book.create("978-0-59-652068-7", "Book 11", "Author 11"),
@@ -132,7 +132,7 @@ class GetAllBooksUseCaseTest {
     @DisplayName("Should map all book properties correctly with pagination")
     void shouldMapAllBookPropertiesCorrectlyWithPagination() {
         // Given
-        GetAllBooksQuery query = new GetAllBooksQuery(0, 10, "title", "ASC");
+        ListBooksQuery query = new ListBooksQuery(0, 10, "title", "ASC");
 
         Book book = Book.create("978-0-59-652068-7", "Clean Code", "Robert Martin");
         book.markAsUnavailable();
@@ -171,7 +171,7 @@ class GetAllBooksUseCaseTest {
     @DisplayName("Should handle DESC sort direction")
     void shouldHandleDescSortDirection() {
         // Given
-        GetAllBooksQuery query = new GetAllBooksQuery(0, 20, "title", "DESC");
+        ListBooksQuery query = new ListBooksQuery(0, 20, "title", "DESC");
 
         Book book1 = Book.create("978-0-20-163361-0", "Design Patterns", "Gang of Four");
         Book book2 = Book.create("978-0-13-235088-4", "Clean Architecture", "Robert Martin");
