@@ -1,7 +1,7 @@
 package ci.org.application.book.usecases;
 
-import ci.org.application.book.dtos.BookResponse;
-import ci.org.application.book.queries.GetBookByIsbnQuery;
+import ci.org.application.book.responses.BookResponse;
+import ci.org.application.book.requests.queries.FindBookQuery;
 import ci.org.domain.book.entities.Book;
 import ci.org.domain.book.exceptions.BookNotFoundException;
 import ci.org.domain.book.repositories.BookRepository;
@@ -42,7 +42,7 @@ class GetBookByIsbnUseCaseTest {
         // Given
         String isbn = "978-0-59-652068-7";
         Book book = Book.create(isbn, "Clean Code", "Robert Martin");
-        GetBookByIsbnQuery query = new GetBookByIsbnQuery(isbn);
+        FindBookQuery query = new FindBookQuery(isbn);
 
         when(bookRepository.findByIsbn(any(Isbn.class))).thenReturn(Optional.of(book));
 
@@ -63,7 +63,7 @@ class GetBookByIsbnUseCaseTest {
     @DisplayName("Should throw exception when book not found by ISBN")
     void shouldThrowExceptionWhenBookNotFoundByIsbn() {
         // Given
-        GetBookByIsbnQuery query = new GetBookByIsbnQuery("978-0-000-00000-0");
+        FindBookQuery query = new FindBookQuery("978-0-000-00000-0");
 
         when(bookRepository.findByIsbn(any(Isbn.class))).thenReturn(Optional.empty());
 
@@ -92,7 +92,7 @@ class GetBookByIsbnUseCaseTest {
         // Given
         String isbn13 = "978-0-59-652068-7";
         Book book = Book.create(isbn13, "Clean Code", "Robert Martin");
-        GetBookByIsbnQuery query = new GetBookByIsbnQuery(isbn13);
+        FindBookQuery query = new FindBookQuery(isbn13);
 
         when(bookRepository.findByIsbn(any(Isbn.class))).thenReturn(Optional.of(book));
 
@@ -109,7 +109,7 @@ class GetBookByIsbnUseCaseTest {
         // Given
         String isbn10 = "0-59-652068-9";
         Book book = Book.create(isbn10, "Clean Code", "Robert Martin");
-        GetBookByIsbnQuery query = new GetBookByIsbnQuery(isbn10);
+        FindBookQuery query = new FindBookQuery(isbn10);
 
         when(bookRepository.findByIsbn(any(Isbn.class))).thenReturn(Optional.of(book));
 

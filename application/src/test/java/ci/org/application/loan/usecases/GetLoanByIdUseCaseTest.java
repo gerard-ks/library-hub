@@ -1,7 +1,7 @@
 package ci.org.application.loan.usecases;
 
-import ci.org.application.loan.dtos.LoanResponse;
-import ci.org.application.loan.queries.GetLoanByIdQuery;
+import ci.org.application.loan.responses.LoanResponse;
+import ci.org.application.loan.requests.queries.FindLoanQuery;
 import ci.org.domain.loan.enitites.Loan;
 import ci.org.domain.loan.exceptions.LoanNotFoundException;
 import ci.org.domain.loan.repositories.LoanRepository;
@@ -46,7 +46,7 @@ class GetLoanByIdUseCaseTest {
 
         Loan loan = Loan.create("member-123", "book-456", borrowDate, dueDate);
         String loanId = loan.getId().value();
-        GetLoanByIdQuery query = new GetLoanByIdQuery(loanId);
+        FindLoanQuery query = new FindLoanQuery(loanId);
 
         when(loanRepository.findById(any(LoanId.class))).thenReturn(Optional.of(loan));
 
@@ -70,7 +70,7 @@ class GetLoanByIdUseCaseTest {
     @DisplayName("Should throw exception when loan not found")
     void shouldThrowExceptionWhenLoanNotFound() {
         // Given
-        GetLoanByIdQuery query = new GetLoanByIdQuery("non-existent-id");
+        FindLoanQuery query = new FindLoanQuery("non-existent-id");
 
         when(loanRepository.findById(any(LoanId.class))).thenReturn(Optional.empty());
 
@@ -103,7 +103,7 @@ class GetLoanByIdUseCaseTest {
         Loan loan = Loan.create("member-123", "book-456", borrowDate, dueDate);
         loan.markAsOverdue();
         String loanId = loan.getId().value();
-        GetLoanByIdQuery query = new GetLoanByIdQuery(loanId);
+        FindLoanQuery query = new FindLoanQuery(loanId);
 
         when(loanRepository.findById(any(LoanId.class))).thenReturn(Optional.of(loan));
 
@@ -125,7 +125,7 @@ class GetLoanByIdUseCaseTest {
         Loan loan = Loan.create("member-123", "book-456", borrowDate, dueDate);
         loan.markAsReturned(returnDate);
         String loanId = loan.getId().value();
-        GetLoanByIdQuery query = new GetLoanByIdQuery(loanId);
+        FindLoanQuery query = new FindLoanQuery(loanId);
 
         when(loanRepository.findById(any(LoanId.class))).thenReturn(Optional.of(loan));
 

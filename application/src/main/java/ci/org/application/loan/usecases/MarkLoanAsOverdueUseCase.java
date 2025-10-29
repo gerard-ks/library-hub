@@ -1,7 +1,7 @@
 package ci.org.application.loan.usecases;
 
-import ci.org.application.loan.commands.MarkLoanAsOverdueCommand;
-import ci.org.application.loan.dtos.LoanResponse;
+import ci.org.application.loan.requests.commands.MarkLoanAsOverdueCommand;
+import ci.org.application.loan.responses.LoanResponse;
 import ci.org.application.loan.mappers.LoanMapper;
 import ci.org.domain.loan.enitites.Loan;
 import ci.org.domain.loan.exceptions.LoanNotFoundException;
@@ -24,20 +24,15 @@ public class MarkLoanAsOverdueUseCase implements CommandUseCase<MarkLoanAsOverdu
 
     @Override
     public LoanResponse execute(MarkLoanAsOverdueCommand command) {
-        Objects.requireNonNull(command, "MarkLoanAsOverdueCommand cannot be null");
-
-        // 1. Rechercher l'emprunt
-        Loan loan = loanRepository.findById(LoanId.of(command.loanId()))
+        return loanRepository.findById(LoanId.of(command.loanId()))
+                .map(this::markAsOverdue)
+                .map(LoanMapper::toResponse)
                 .orElseThrow(() -> new LoanNotFoundException(command.loanId()));
+    }
 
-        // 2. Appliquer la règle métier
+    private Loan markAsOverdue(Loan loan) {
         loan.markAsOverdue();
-
-        // 3. Persister
-        Loan updatedLoan = loanRepository.save(loan);
-
-        // 4. Mapper vers DTO et retourner
-        return LoanMapper.toResponse(updatedLoan);
+        return loanRepository.save(loan);
     }
 }
 

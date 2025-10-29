@@ -1,7 +1,7 @@
 package ci.org.application.book.usecases;
 
-import ci.org.application.book.commands.MarkBookAsUnavailableCommand;
-import ci.org.application.book.dtos.BookResponse;
+import ci.org.application.book.requests.commands.MarkBookAsUnavailableCommand;
+import ci.org.application.book.responses.BookResponse;
 import ci.org.application.book.mappers.BookMapper;
 import ci.org.domain.book.entities.Book;
 import ci.org.domain.book.exceptions.BookNotFoundException;
@@ -24,24 +24,19 @@ public class MarkBookAsUnavailableUseCase implements CommandUseCase<MarkBookAsUn
     private final BookRepository bookRepository;
 
     public MarkBookAsUnavailableUseCase(BookRepository bookRepository) {
-        this.bookRepository = Objects.requireNonNull(bookRepository, "BookRepository cannot be null");
+        this.bookRepository = bookRepository;
     }
 
     @Override
     public BookResponse execute(MarkBookAsUnavailableCommand command) {
-        Objects.requireNonNull(command, "MarkBookAsUnavailableCommand cannot be null");
-
-        // 1. Rechercher le livre
-        Book book = bookRepository.findById(BookId.of(command.bookId()))
+        return bookRepository.findById(BookId.of(command.bookId()))
+                .map(this::markAsUnavailable)
+                .map(BookMapper::toResponse)
                 .orElseThrow(() -> new BookNotFoundException(command.bookId()));
+    }
 
-        // 2. Appliquer la règle métier
+    private Book markAsUnavailable(Book book) {
         book.markAsUnavailable();
-
-        // 3. Persister
-        Book updatedBook = bookRepository.save(book);
-
-        // 4. Mapper vers DTO et retourner
-        return BookMapper.toResponse(updatedBook);
+        return bookRepository.save(book);
     }
 }

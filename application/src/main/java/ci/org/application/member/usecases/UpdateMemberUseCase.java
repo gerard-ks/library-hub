@@ -1,7 +1,7 @@
 package ci.org.application.member.usecases;
 
-import ci.org.application.member.commands.UpdateMemberCommand;
-import ci.org.application.member.dtos.MemberResponse;
+import ci.org.application.member.requests.commands.UpdateMemberCommand;
+import ci.org.application.member.responses.MemberResponse;
 import ci.org.application.member.mappers.MemberMapper;
 import ci.org.domain.member.entities.Member;
 import ci.org.domain.member.exceptions.MemberNotFoundException;
@@ -24,19 +24,14 @@ public class UpdateMemberUseCase implements CommandUseCase<UpdateMemberCommand, 
 
     @Override
     public MemberResponse execute(UpdateMemberCommand command) {
-        Objects.requireNonNull(command, "UpdateMemberCommand cannot be null");
-
-        // 1. Rechercher le membre
-        Member member = memberRepository.findById(MemberId.of(command.memberId()))
+        return memberRepository.findById(MemberId.of(command.memberId()))
+                .map(member -> updateAndSave(member, command))
+                .map(MemberMapper::toResponse)
                 .orElseThrow(() -> new MemberNotFoundException(command.memberId()));
+    }
 
-        // 2. Appliquer la modification (validation métier automatique)
+    private Member updateAndSave(Member member, UpdateMemberCommand command) {
         member.updateName(command.newName());
-
-        // 3. Persister
-        Member updatedMember = memberRepository.save(member);
-
-        // 4. Mapper vers DTO et retourner
-        return MemberMapper.toResponse(updatedMember);
+        return memberRepository.save(member);
     }
 }

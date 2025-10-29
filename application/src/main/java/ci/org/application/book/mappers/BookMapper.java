@@ -1,6 +1,6 @@
 package ci.org.application.book.mappers;
 
-import ci.org.application.book.dtos.BookResponse;
+import ci.org.application.book.responses.BookResponse;
 import ci.org.domain.book.entities.Book;
 
 /**

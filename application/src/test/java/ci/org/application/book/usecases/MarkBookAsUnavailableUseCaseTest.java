@@ -1,9 +1,8 @@
 package ci.org.application.book.usecases;
 
-import ci.org.application.book.commands.MarkBookAsUnavailableCommand;
-import ci.org.application.book.dtos.BookResponse;
+import ci.org.application.book.requests.commands.MarkBookAsUnavailableCommand;
+import ci.org.application.book.responses.BookResponse;
 import ci.org.domain.book.entities.Book;
-import ci.org.domain.book.exceptions.BookAlreadyAvailableException;
 import ci.org.domain.book.exceptions.BookAlreadyUnavailableException;
 import ci.org.domain.book.exceptions.BookNotFoundException;
 import ci.org.domain.book.repositories.BookRepository;

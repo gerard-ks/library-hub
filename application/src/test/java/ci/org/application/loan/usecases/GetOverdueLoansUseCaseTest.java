@@ -1,15 +1,17 @@
 package ci.org.application.loan.usecases;
 
-import ci.org.application.loan.dtos.LoanResponse;
-import ci.org.application.loan.queries.GetOverdueLoansQuery;
+import ci.org.application.loan.responses.LoanResponse;
+import ci.org.application.loan.requests.queries.SearchLoansQuery;
 import ci.org.domain.loan.enitites.Loan;
 import ci.org.domain.loan.repositories.LoanRepository;
 import ci.org.shared.kernel.Page;
 import ci.org.shared.kernel.PageRequest;
+import ci.org.shared.kernel.Sort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -43,7 +45,7 @@ class GetOverdueLoansUseCaseTest {
     @DisplayName("Should get all overdue loans with pagination successfully")
     void shouldGetAllOverdueLoansWithPaginationSuccessfully() {
         // Given
-        GetOverdueLoansQuery query = new GetOverdueLoansQuery(0, 20, "dueDate", "ASC");
+        SearchLoansQuery query = SearchLoansQuery.forOverdueLoans();
 
         LocalDate borrowDate1 = LocalDate.now().minusDays(30);
         LocalDate borrowDate2 = LocalDate.now().minusDays(25);
@@ -59,7 +61,7 @@ class GetOverdueLoansUseCaseTest {
         loan3.markAsOverdue();
 
         List<Loan> loans = Arrays.asList(loan1, loan2, loan3);
-        PageRequest pageRequest = PageRequest.of(0, 20);
+        PageRequest pageRequest = PageRequest.of(0, 20, Sort.by("dueDate", Sort.Direction.ASC));
         Page<Loan> loanPage = Page.of(loans, pageRequest, 3);
 
         when(loanRepository.findOverdueLoans(any(PageRequest.class))).thenReturn(loanPage);
@@ -71,6 +73,9 @@ class GetOverdueLoansUseCaseTest {
         assertNotNull(responsePage);
         assertEquals(3, responsePage.getContent().size());
         assertEquals(3, responsePage.getTotalElements());
+        assertEquals(0, responsePage.getPageNumber());
+        assertEquals(20, responsePage.getPageSize());
+        assertEquals(1, responsePage.getTotalPages());
 
         // Tous les statuts doivent être OVERDUE
         responsePage.getContent().forEach(loan -> {
@@ -85,7 +90,7 @@ class GetOverdueLoansUseCaseTest {
     @DisplayName("Should return empty page when no overdue loans")
     void shouldReturnEmptyPageWhenNoOverdueLoans() {
         // Given
-        GetOverdueLoansQuery query = new GetOverdueLoansQuery(0, 20, "dueDate", "ASC");
+        SearchLoansQuery query = SearchLoansQuery.forOverdueLoans();
 
         PageRequest pageRequest = PageRequest.of(0, 20);
         Page<Loan> emptyPage = Page.of(Collections.emptyList(), pageRequest, 0);
@@ -107,7 +112,9 @@ class GetOverdueLoansUseCaseTest {
     @DisplayName("Should handle pagination correctly")
     void shouldHandlePaginationCorrectly() {
         // Given
-        GetOverdueLoansQuery query = new GetOverdueLoansQuery(0, 10, "dueDate", "ASC");
+        SearchLoansQuery query = new SearchLoansQuery(
+                null, 0, 10, "dueDate", "ASC"
+        );
 
         LocalDate borrowDate = LocalDate.now().minusDays(30);
         List<Loan> loans = Arrays.asList(
@@ -116,7 +123,7 @@ class GetOverdueLoansUseCaseTest {
         );
         loans.forEach(Loan::markAsOverdue);
 
-        PageRequest pageRequest = PageRequest.of(0, 10);
+        PageRequest pageRequest = PageRequest.of(0, 10, Sort.by("dueDate", Sort.Direction.ASC));
         Page<Loan> loanPage = Page.of(loans, pageRequest, 15);
 
         when(loanRepository.findOverdueLoans(any(PageRequest.class))).thenReturn(loanPage);
@@ -129,9 +136,11 @@ class GetOverdueLoansUseCaseTest {
         assertEquals(10, responsePage.getPageSize());
         assertEquals(15, responsePage.getTotalElements());
         assertEquals(2, responsePage.getTotalPages());
+        assertEquals(2, responsePage.getNumberOfElements());
 
         assertTrue(responsePage.isFirst());
         assertFalse(responsePage.isLast());
+        assertFalse(responsePage.hasPrevious());
         assertTrue(responsePage.hasNext());
     }
 
@@ -144,5 +153,112 @@ class GetOverdueLoansUseCaseTest {
         });
 
         verify(loanRepository, never()).findOverdueLoans(any(PageRequest.class));
+    }
+
+    @Test
+    @DisplayName("Should use default values when using factory method")
+    void shouldUseDefaultValuesWhenUsingFactoryMethod() {
+        // Given
+        SearchLoansQuery query = SearchLoansQuery.forOverdueLoans();
+
+        // Then - Vérifie les valeurs par défaut pour overdue loans
+        assertEquals(0, query.page());
+        assertEquals(20, query.size());
+        assertEquals("dueDate", query.sortBy());
+        assertEquals("ASC", query.sortDirection());
+        assertNull(query.memberId());
+    }
+
+    @Test
+    @DisplayName("Should create correct PageRequest from query")
+    void shouldCreateCorrectPageRequestFromQuery() {
+        // Given
+        SearchLoansQuery query = new SearchLoansQuery(
+                null, 2, 15, "memberId", "DESC"
+        );
+
+        PageRequest expectedPageRequest = PageRequest.of(2, 15, Sort.by("memberId", Sort.Direction.DESC));
+
+        when(loanRepository.findOverdueLoans(any(PageRequest.class)))
+                .thenReturn(Page.of(Collections.emptyList(), expectedPageRequest, 0));
+
+        // When
+        useCase.execute(query);
+
+        // Then - Vérifie que le PageRequest est correctement construit
+        ArgumentCaptor<PageRequest> pageRequestCaptor = ArgumentCaptor.forClass(PageRequest.class);
+        verify(loanRepository).findOverdueLoans(pageRequestCaptor.capture());
+
+        PageRequest capturedPageRequest = pageRequestCaptor.getValue();
+        assertEquals(2, capturedPageRequest.pageNumber());
+        assertEquals(15, capturedPageRequest.pageSize());
+
+        // Vérifier le tri
+        assertTrue(capturedPageRequest.sort().isSorted());
+        assertEquals(1, capturedPageRequest.sort().getOrders().size());
+
+        Sort.Order order = capturedPageRequest.sort().getOrders().get(0);
+        assertEquals("memberId", order.property());
+        assertEquals(Sort.Direction.DESC, order.direction());
+    }
+
+    @Test
+    @DisplayName("Should sort by dueDate in ascending order by default")
+    void shouldSortByDueDateInAscendingOrderByDefault() {
+        // Given
+        SearchLoansQuery query = SearchLoansQuery.forOverdueLoans();
+
+        LocalDate today = LocalDate.now();
+        LocalDate dueDate1 = today.minusDays(20); // Plus ancien
+        LocalDate dueDate2 = today.minusDays(10);
+        LocalDate dueDate3 = today.minusDays(5);  // Plus récent
+
+        Loan loan1 = Loan.create("member-1", "book-1", dueDate1.minusDays(14), dueDate1);
+        Loan loan2 = Loan.create("member-2", "book-2", dueDate2.minusDays(14), dueDate2);
+        Loan loan3 = Loan.create("member-3", "book-3", dueDate3.minusDays(14), dueDate3);
+
+        List.of(loan1, loan2, loan3).forEach(Loan::markAsOverdue);
+
+        // Les loans sont triés par dueDate ASC (plus urgents en premier)
+        List<Loan> loans = Arrays.asList(loan1, loan2, loan3);
+        PageRequest pageRequest = PageRequest.of(0, 20, Sort.by("dueDate", Sort.Direction.ASC));
+        Page<Loan> loanPage = Page.of(loans, pageRequest, 3);
+
+        when(loanRepository.findOverdueLoans(any(PageRequest.class))).thenReturn(loanPage);
+
+        // When
+        Page<LoanResponse> responsePage = useCase.execute(query);
+
+        // Then - Vérifie que l'ordre est respecté (plus ancien en premier)
+        assertNotNull(responsePage);
+        assertEquals(3, responsePage.getContent().size());
+
+        // Le premier loan devrait être le plus ancien (plus en retard)
+        LoanResponse firstLoan = responsePage.getContent().get(0);
+        assertEquals("member-1", firstLoan.memberId());
+    }
+
+    @Test
+    @DisplayName("Should calculate offset correctly for overdue loans pagination")
+    void shouldCalculateOffsetCorrectlyForPagination() {
+        // Given
+        SearchLoansQuery query = new SearchLoansQuery(
+                null, 3, 10, "dueDate", "ASC"
+        );
+
+        PageRequest pageRequest = PageRequest.of(3, 10, Sort.by("dueDate", Sort.Direction.ASC));
+        Page<Loan> loanPage = Page.of(Collections.emptyList(), pageRequest, 50);
+
+        when(loanRepository.findOverdueLoans(any(PageRequest.class))).thenReturn(loanPage);
+
+        // When
+        useCase.execute(query);
+
+        // Then
+        ArgumentCaptor<PageRequest> captor = ArgumentCaptor.forClass(PageRequest.class);
+        verify(loanRepository).findOverdueLoans(captor.capture());
+
+        PageRequest captured = captor.getValue();
+        assertEquals(30, captured.getOffset()); // page 3, size 10 => offset 30
     }
 }

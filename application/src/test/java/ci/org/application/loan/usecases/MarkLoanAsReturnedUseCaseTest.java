@@ -1,7 +1,7 @@
 package ci.org.application.loan.usecases;
 
-import ci.org.application.loan.commands.MarkLoanAsReturnedCommand;
-import ci.org.application.loan.dtos.LoanResponse;
+import ci.org.application.loan.requests.commands.MarkLoanAsReturnedCommand;
+import ci.org.application.loan.responses.LoanResponse;
 import ci.org.domain.loan.enitites.Loan;
 import ci.org.domain.loan.exceptions.LoanAlreadyReturnedException;
 import ci.org.domain.loan.exceptions.LoanNotFoundException;

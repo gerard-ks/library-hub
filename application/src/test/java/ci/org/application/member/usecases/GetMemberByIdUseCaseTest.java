@@ -1,7 +1,7 @@
 package ci.org.application.member.usecases;
 
-import ci.org.application.member.dtos.MemberResponse;
-import ci.org.application.member.queries.GetMemberByIdQuery;
+import ci.org.application.member.responses.MemberResponse;
+import ci.org.application.member.requests.queries.FindMemberQuery;
 import ci.org.domain.member.entities.Member;
 import ci.org.domain.member.exceptions.MemberNotFoundException;
 import ci.org.domain.member.repositories.MemberRepository;
@@ -42,7 +42,7 @@ class GetMemberByIdUseCaseTest {
         // Given
         Member member = Member.create("John Doe");
         String memberId = member.getId().value();
-        GetMemberByIdQuery query = new GetMemberByIdQuery(memberId);
+        FindMemberQuery query = new FindMemberQuery(memberId);
 
         when(memberRepository.findById(any(MemberId.class))).thenReturn(Optional.of(member));
 
@@ -63,7 +63,7 @@ class GetMemberByIdUseCaseTest {
     @DisplayName("Should throw exception when member not found")
     void shouldThrowExceptionWhenMemberNotFound() {
         // Given
-        GetMemberByIdQuery query = new GetMemberByIdQuery("non-existent-id");
+        FindMemberQuery query = new FindMemberQuery("non-existent-id");
 
         when(memberRepository.findById(any(MemberId.class))).thenReturn(Optional.empty());
 
@@ -94,7 +94,7 @@ class GetMemberByIdUseCaseTest {
         member.forbidBorrowing();
         member.adjustBorrowingLimit(10);
         String memberId = member.getId().value();
-        GetMemberByIdQuery query = new GetMemberByIdQuery(memberId);
+        FindMemberQuery query = new FindMemberQuery(memberId);
 
         when(memberRepository.findById(any(MemberId.class))).thenReturn(Optional.of(member));
 
