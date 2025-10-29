@@ -12,6 +12,7 @@ import ci.org.shared.kernel.TransactionMode;
 import ci.org.shared.kernel.UseCase;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Use Case : Marquer un livre comme indisponible.
@@ -29,19 +30,13 @@ public class MarkBookAsUnavailableUseCase implements CommandUseCase<MarkBookAsUn
 
     @Override
     public BookResponse execute(MarkBookAsUnavailableCommand command) {
-        Objects.requireNonNull(command, "MarkBookAsUnavailableCommand cannot be null");
-
-        // 1. Rechercher le livre
         Book book = bookRepository.findById(BookId.of(command.bookId()))
                 .orElseThrow(() -> new BookNotFoundException(command.bookId()));
 
-        // 2. Appliquer la règle métier
         book.markAsUnavailable();
 
-        // 3. Persister
-        Book updatedBook = bookRepository.save(book);
-
-        // 4. Mapper vers DTO et retourner
-        return BookMapper.toResponse(updatedBook);
+        return Optional.ofNullable(bookRepository.save(book))
+                .map(BookMapper::toResponse)
+                .orElseThrow(() -> new RuntimeException(""));
     }
 }
